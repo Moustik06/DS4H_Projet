@@ -19,7 +19,9 @@ export function removeUnusedFields(obj: any, unusedFields: string[]): any {
 
     return obj;
 }
-
+export function todo() {
+    console.log("TODO");
+}
 export const obj = [
     {
         "direction": "vgroup",

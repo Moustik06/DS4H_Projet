@@ -44,13 +44,14 @@ export class BaseComponents {
     private _maximum: number;
     private _step: number;
     private _value: number;
+    private _style: string;
     constructor(label:string,options:any){
         this._name = label;
         this._minimum = options.min || 0;
         this._maximum = options.max || 100;
         this._step = options._step || 1;
         this._value = options.init || 0;
-
+        this._style = options.style || null;
     }
 
 }

@@ -1,6 +1,7 @@
 import {AdvancedDynamicTexture, GUI3DManager, TextBlock} from "@babylonjs/gui";
 import {
-    Color3, CubeTexture,
+    Color3,
+    CubeTexture,
     DynamicTexture,
     Engine,
     FreeCamera,
@@ -46,8 +47,8 @@ class App {
         globalLight.intensity = 1;
 
         var guiTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
         var fpsText = new TextBlock();
+
         fpsText.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_RIGHT;
         fpsText.textVerticalAlignment = TextBlock.VERTICAL_ALIGNMENT_TOP;
         fpsText.text = "FPS: 0";
@@ -76,15 +77,14 @@ class App {
         });
 
         window.addEventListener("keydown", (event) => {
-                if (event.key == "f") {
-                    camera.position = new Vector3(0, 2, 10);
-                    camera.setTarget(Vector3.Zero());
-                }
-                if (event.key == "z" && event.altKey) {
-                    scene.forceWireframe = !scene.forceWireframe;
-                }
+            if (event.key == "f") {
+                camera.position = new Vector3(0, 2, 10);
+                camera.setTarget(Vector3.Zero());
             }
-        );
+            if (event.key == "z" && event.altKey) {
+                scene.forceWireframe = !scene.forceWireframe;
+            }
+        });
         const showAxis = function (size: number) {
 
             const makeTextPlane = function (text, color, size) {
@@ -127,6 +127,8 @@ class App {
         MeshLoader.loadMeshes(scene).then(r => {
             new Builder3D(scene, manager).buildFromJson();
         });
+
+
     }
 }
 

@@ -1,7 +1,6 @@
 import { VGroup } from './components/vgroup';
 import { HGroup } from './components/hgroup';
 import { HSlider } from './components/hslider';
-import { Knob } from './components/knob';
 import { Switch } from './components/switch';
 import { Checkbox } from './components/checkbox';
 import { VSlider } from './components/vslider';
@@ -27,8 +26,6 @@ export class ComponentFactory{
                 return new HGroup(label, options);
             case 'hslider':
                 return new HSlider(label, options);
-            case 'knob':
-                return new Knob(label, options);
             case 'switch':
                 return new Switch(label, options);
             case 'checkbox':
