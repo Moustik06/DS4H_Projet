@@ -1,3 +1,8 @@
+/**
+ * Base class for every component except the slider. 
+ * Contains the common properties of the components.
+ * Getters and setters made for what is needed. ( Can be modified )
+ */
 export class BaseComponents {
     get name(): string {
         return this._name;
@@ -45,6 +50,12 @@ export class BaseComponents {
     private _step: number;
     private _value: number;
     private _style: string;
+
+    /**
+     * Constructor of the BaseComponents class.
+     * @param label - The label of the component.
+     * @param options - The options for the component. If not provided, default values are used.
+     */
     constructor(label:string,options:any){
         this._name = label;
         this._minimum = options.min || 0;

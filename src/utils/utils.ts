@@ -1,4 +1,13 @@
-export function removeUnusedFields(obj: any, unusedFields: string[]): any {
+/**
+ * Used at the start of the projet to remove unused fields in the JSON taken from the devtools of the browser,
+ * to keep only the fields that are used in the code.
+ * 
+ * Not used any more, but kept just in case.
+ * 
+ * @param obj WAM2 GUI JSON 
+ * @param unusedFields List of fields we want to remove
+ */
+function removeUnusedFields(obj: any, unusedFields: string[]): any {
     if (typeof obj !== 'object' || obj === null) {
         return obj;
     }
@@ -19,137 +28,11 @@ export function removeUnusedFields(obj: any, unusedFields: string[]): any {
 
     return obj;
 }
-export function todo() {
-    console.log("TODO");
+/**
+ * Function to fill hole in the code when we want to do something, but we don't know what yet.
+ * 
+ * @param s Message to display
+ */
+export function todo(s: string) {
+    console.log("TODO" + s);
 }
-export const obj = [
-    {
-        "direction": "vgroup",
-        "components": [
-            {
-                "direction": "hgroup",
-                "components": [
-                    {
-                        "type": "knob",
-                        "name": "delayTime",
-                        "address": "/Greyhole/Mix/delayTime",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0.001,
-                            "max": 1.45,
-                            "step": 0.0001,
-                            "width": 40,
-                            "height": 40
-                        }
-                    },
-                    {
-                        "type": "knob",
-                        "name": "damping",
-                        "address": "/Greyhole/Mix/damping",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0,
-                            "max": 0.99,
-                            "step": 0.001,
-                            "width": 40,
-                            "height": 40
-                        }
-                    },
-                    {
-                        "type": "knob",
-                        "name": "size",
-                        "address": "/Greyhole/Mix/size",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0.5,
-                            "max": 3,
-                            "step": 0.0001,
-                            "width": 40,
-                            "height": 40
-                        }
-                    },
-                    {
-                        "type": "knob",
-                        "name": "diffusion",
-                        "address": "/Greyhole/Mix/diffusion",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0,
-                            "max": 0.99,
-                            "step": 0.0001,
-                            "width": 40,
-                            "height": 40
-                        }
-                    },
-                    {
-                        "type": "knob",
-                        "name": "feedback",
-                        "address": "/Greyhole/Mix/feedback",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0,
-                            "max": 1,
-                            "step": 0.01,
-                            "width": 40,
-                            "height": 40
-                        }
-                    }
-                ],
-                "type": "layout",
-                "name": "greyhole",
-                "id": "greyhole"
-            },
-            {
-                "direction": "hgroup",
-                "components": [
-                    {
-                        "type": "knob",
-                        "name": "modDepth",
-                        "address": "/Greyhole/Mod/modDepth",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0,
-                            "max": 1,
-                            "step": 0.001,
-                            "width": 40,
-                            "height": 40
-                        }
-                    },
-                    {
-                        "type": "knob",
-                        "name": "modFreq",
-                        "address": "/Greyhole/Mod/modFreq",
-                        "webAudioType": "knob",
-                        "attributes": {
-                            "src": "./img/knobs/MiniMoog_Main.png",
-                            "sprites": 100,
-                            "min": 0,
-                            "max": 10,
-                            "step": 0.01,
-                            "width": 40,
-                            "height": 40
-                        }
-                    }
-                ],
-                "type": "layout",
-                "name": "greyhole",
-                "id": "greyhole"
-            }
-        ],
-        "type": "layout",
-        "name": "greyhole",
-        "id": "greyhole"
-    }
-]

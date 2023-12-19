@@ -6,6 +6,10 @@ import {HGroup} from "../factory/components/hgroup";
 import {MeshLoader} from "../meshLoader";
 import {VGroup} from "../factory/components/vgroup";
 
+/**
+ * Main class responsible for building the 3D GUI & components.
+ * @method buildFromJson - Builds the 3D GUI & components from the JSON file.
+ */
 export class Builder3D {
     json: any;
     gui3DManager: GUI3DManager;
@@ -14,14 +18,23 @@ export class Builder3D {
     private offsetX = -2;
     private offsetYForGroupName = 1.75;
     private isTitleNeeded = true;
+
+    /**
+     * Boolean to know if the main group is vertical or horizontal.
+     */
+    private isVertical = false;
     constructor(scene: Scene, gui3DManager: GUI3DManager) {
         this.json = parser();
         this.gui3DManager = gui3DManager;
         this.scene = scene;
     }
-
+    
+    /**
+     * Builds the 3D GUI & components from the JSON file.
+     * 
+     */
     public buildFromJson() {
-        const {hgroupCount, vgroupCount} = groups;
+        //const {hgroupCount, vgroupCount} = groups;
         let supportBox = MeshBuilder.CreateBox("supportBox", {width: 5, height: 5, depth: 1}, this.scene);
         supportBox.position = new Vector3(0, 0, 0.55);
         supportBox.material = new StandardMaterial("supportBoxMaterial", this.scene);
@@ -33,6 +46,15 @@ export class Builder3D {
         holderName.color = "white";
         let advancedTexture = AdvancedDynamicTexture.CreateForMesh(mainTitle);
         advancedTexture.addControl(holderName);
+
+        /**
+         * Loop through the components in the parsed JSON file and process them.
+         * 
+         */
+
+        if (this.json instanceof VGroup){
+            this.isVertical = true;
+        }
         this.json.components.forEach((group: any) => {
                 this.isTitleNeeded = !!group.components; // group.components ? true : false
                 this.processGroup(group, mainTitle)
@@ -40,11 +62,16 @@ export class Builder3D {
                     this.offsetX = -2;
                     this.offsetY -=2;
                 }
-
         });
 
     }
 
+    /**
+     * Generates a TextBlock with the specified label.
+     * 
+     * @param label  - The text to be displayed in the TextBlock.
+     * @returns The generated TextBlock.
+     */
     private generateTextBlock(label: string): TextBlock {
         let textBlock = new TextBlock();
         textBlock.text = label;
@@ -53,8 +80,17 @@ export class Builder3D {
         return textBlock;
     }
 
-    // Fonction qui va gérer la création des groupes de façon récursive
+    /**
+     * Processes a group of components.
+     * @param group - The group of components to be processed, creating them and adding them to the scene.
+     * @param parentAnchor - The parent anchor of the group.
+     */
     private processGroup(group: any, parentAnchor: TransformNode) {
+
+        /**
+         * If a group label is needed (if the group has components), create a TextBlock with the label.
+         */
+
         if (this.isTitleNeeded){
             let groupName = this.generateTextBlock(group.label);
             let groupNamePlane = MeshBuilder.CreatePlane("groupNamePlane", {width: 1.5, height: 1.5}, this.scene);
@@ -67,6 +103,10 @@ export class Builder3D {
         }
         let currentAnchor = new TransformNode("currentAnchor" + group.label);
         let type;
+        /**
+         * Loop through the components in the group and process them.
+         * Need to improve the code for better readability. 
+         */
         if (group.components) {
             group.components.forEach((subComponent: any) => {
                 if (subComponent instanceof HGroup || subComponent instanceof VGroup) {
@@ -101,10 +141,19 @@ export class Builder3D {
                     break;
             }
         }
-
+        if(this.isVertical){
+            this.offsetY -= 1;
+            this.offsetX = -2;
+        }
         //this.offsetX = -2;
     }
-
+    /**
+     * Process a HSLider or a VSlider(todo), check it's style and create the corresponding component.
+     * @param subComponent component to be processed
+     * @param anchor scene anchor for easier positioning
+     * @param scene scene where the component will be added
+     * @param gui3DManager BABYLON GUI3DManager instance
+     */
     private createKnob(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
         if(subComponent.style && subComponent.style == "knob") {
             let knob = MeshLoader.knobMesh.clone(subComponent.label, null);
@@ -129,7 +178,13 @@ export class Builder3D {
             textBlock.fontSize = "15%";
 
             texture.addControl(textBlock);
-            //Rotation de base en fonction de la valeur initiale
+
+            /** 
+             * Behavior for the knob associated slider.
+             * First line is to set the default knob rotation from the default value of the slider.
+             * onValueChangedObservable : when the value of the slider changes, the knob rotation is updated.
+             * Display the value if not at the minimum value.
+            */
             knob.rotation.z = -((knobSlider.value * Math.PI) / knobSlider.maximum * 2);
             knobSlider.onValueChangedObservable.add(() => {
                 if (knobSlider.value.toFixed(2) == knobSlider.minimum.toFixed(2)) {
@@ -140,18 +195,24 @@ export class Builder3D {
                 knob.rotation.z = -((knobSlider.value * Math.PI) / knobSlider.maximum * 2);
             });
         }else{
-            todo();
-            //this.createSlider(subComponent, anchor, scene, gui3DManager);
+            todo("Implémentation du slider, terminer la position ainsi que le behavior");
+            this.createSlider(subComponent, anchor, scene, gui3DManager);
         }
     }
 
+    /**
+     * Process a slider, create the corresponding component.
+     * @param subComponent component to be processed
+     * @param anchor scene anchor for easier positioning
+     * @param scene scene where the component will be added
+     * @param gui3DManager BABYLON GUI3DManager instance
+     */
     private createSlider(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
-        todo();
         let sliderPanel = new PlanePanel();
         gui3DManager.addControl(sliderPanel);
         let slider = new Slider3D("slider " + subComponent.label);
         sliderPanel.addControl(slider);
-        slider.position = new Vector3(this.offsetX, this.offsetY, 0);
+        slider.position = new Vector3(this.offsetX+0.5, this.offsetY, 0);
         slider.minimum = subComponent.min;
         slider.maximum = subComponent.max;
         slider.value = subComponent.init;
@@ -159,10 +220,9 @@ export class Builder3D {
         slider.scaling = new Vector3(2, 1, 1.5);
         //this.offsetX += 1;
         let textAnchor = new TransformNode("textAnchor" + subComponent.label);
-        textAnchor.position = new Vector3(this.offsetX, this.offsetY, 0);
+        textAnchor.position = slider.position.clone().add(new Vector3(0, 0.25, 0));
         let textPlane = MeshBuilder.CreatePlane("textPlane", {width: 1, height: 1}, scene);
         textPlane.parent = textAnchor;
-        textPlane.position = slider.position.clone();
         let texture = AdvancedDynamicTexture.CreateForMesh(textPlane);
         let textBlock = new TextBlock();
         textBlock.text = subComponent.label;
@@ -170,8 +230,28 @@ export class Builder3D {
         textBlock.fontSize = "15%";
         texture.addControl(textBlock);
 
-        this.offsetY -= 1;
+        /** 
+         * Behavior for the slider.
+         * Display the value if not at the minimum value.
+        */
+        slider.onValueChangedObservable.add(() => {
+            if (slider.value.toFixed(2) == slider.minimum.toFixed(2)) {
+                textBlock.text = subComponent.label;
+            } else {
+                textBlock.text = subComponent.label + "\nValue: " + slider.value.toFixed(2);
+            }
+        });
+
+        this.offsetX += 2;
     }
+
+    /**
+     * Setup the knob slider.
+     * @param knobSlider the slider mesh we need to setup
+     * @param subComponent current component to get the min, max, init and step values
+     * @param textAnchor the anchor for the text
+     * @param scene the scene where the component will be added
+     */
     private setupKnobSlider(knobSlider: Slider3D, subComponent: any, textAnchor: TransformNode, scene: Scene) {
         knobSlider.position = new Vector3(0, -0.5, -0.25);
         knobSlider.node.parent = textAnchor;
@@ -180,6 +260,14 @@ export class Builder3D {
         knobSlider.value = subComponent.init;
         knobSlider.step = subComponent.step;
     }
+
+    /**
+     * Process a checkbox, create the corresponding component.
+     * @param subComponent component to be processed
+     * @param anchor scene anchor for easier positioning
+     * @param scene scene where the component will be added
+     * @param gui3DManager BABYLON GUI3DManager instance
+     */
     private createCheckbox(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
         let checkboxPanel = new PlanePanel();
         gui3DManager.addControl(checkboxPanel);

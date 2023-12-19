@@ -1,4 +1,4 @@
-import {AdvancedDynamicTexture, GUI3DManager, TextBlock} from "@babylonjs/gui";
+import { AdvancedDynamicTexture, GUI3DManager, TextBlock } from "@babylonjs/gui";
 import {
     Color3,
     CubeTexture,
@@ -13,8 +13,8 @@ import {
     Vector3
 } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
-import {Builder3D} from "./wam3D/builder3D/builder";
-import {MeshLoader} from "./wam3D/meshLoader";
+import { Builder3D } from "./wam3D/builder3D/builder";
+import { MeshLoader } from "./wam3D/meshLoader";
 
 class App {
     constructor() {
@@ -27,6 +27,9 @@ class App {
         // initialize babylon scene and engine
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
+        /**
+         * Cube texture taken from BabylonJS Playground, not needed it's just for the look
+         */
         let cube = new CubeTexture("https://assets.babylonjs.com/environments/environmentSpecular.env", scene);
         cube.level = 0.35;
         scene.environmentTexture = cube;
@@ -85,6 +88,9 @@ class App {
                 scene.forceWireframe = !scene.forceWireframe;
             }
         });
+        /**
+         * Function taken from BabylonJS Playground, used to show axis in the scene
+         */
         const showAxis = function (size: number) {
 
             const makeTextPlane = function (text, color, size) {
@@ -124,6 +130,9 @@ class App {
         };
         showAxis(15);
 
+        /**
+         * Load the meshes from the scene and build the 3D GUI
+         */
         MeshLoader.loadMeshes(scene).then(r => {
             new Builder3D(scene, manager).buildFromJson();
         });
