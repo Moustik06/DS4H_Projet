@@ -1,4 +1,4 @@
-import {groups, parser} from "../parsing";
+import {parser} from "../parsing";
 import {todo} from "../../utils/utils";
 import {AdvancedDynamicTexture, GUI3DManager, PlanePanel, Slider3D, TextBlock, TouchButton3D} from "@babylonjs/gui";
 import {Color3, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
@@ -102,50 +102,49 @@ export class Builder3D {
             advancedTexture.addControl(groupName);
         }
         let currentAnchor = new TransformNode("currentAnchor" + group.label);
-        let type;
         /**
          * Loop through the components in the group and process them.
-         * Need to improve the code for better readability. 
          */
         if (group.components) {
             group.components.forEach((subComponent: any) => {
                 if (subComponent instanceof HGroup || subComponent instanceof VGroup) {
                     this.processGroup(subComponent, currentAnchor);
                 } else {
-                    switch (type = Object.getPrototypeOf(subComponent).constructor.name) {
-                        case "HSlider":
-                            this.createKnob(subComponent, currentAnchor, this.scene, this.gui3DManager);
-                            break;
-                        case "Checkbox":
-                            this.createCheckbox(subComponent, currentAnchor, this.scene, this.gui3DManager);
-                            break;
-                        default:
-                            console.log("Not implemented yet : " + type);
-                            break;
-                    }
+                    this.processComponent(subComponent, currentAnchor, this.scene, this.gui3DManager);
                 }
             });
         } else {
-            switch (type = Object.getPrototypeOf(group).constructor.name) {
-                case "HSlider":
-                    this.createKnob(group, currentAnchor, this.scene, this.gui3DManager);
-                    break;
-                case "VGroup":
-                    this.createSlider(group, currentAnchor, this.scene, this.gui3DManager);
-                    break;
-                case "Checkbox":
-                    this.createCheckbox(group, currentAnchor, this.scene, this.gui3DManager);
-                    break;
-                default:
-                    console.log("Not implemented yet : " + group.type);
-                    break;
-            }
+            this.processComponent(group, currentAnchor, this.scene, this.gui3DManager);
         }
         if(this.isVertical){
             this.offsetY -= 1;
             this.offsetX = -2;
         }
         //this.offsetX = -2;
+    }
+
+    /**
+     * Processes a component from a group of components and adds it to the scene.
+     * @param component - The component to be processed, creating it and adding it to the scene.
+     * @param anchor - The anchor of the component.
+     * @param scene - The scene where the component will be added.
+     * @param gui3DManager - The BABYLON GUI3DManager instance.
+     */
+    private processComponent(component: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
+        switch (Object.getPrototypeOf(component).constructor.name) {
+            case "HSlider":
+                this.createKnob(component, anchor, scene, gui3DManager);
+                break;
+            case "VGroup":
+                this.createSlider(component, anchor, scene, gui3DManager);
+                break;
+            case "Checkbox":
+                this.createCheckbox(component, anchor, scene, gui3DManager);
+                break;
+            default:
+                console.log("Not implemented yet : " + component.type);
+                break;
+        }
     }
     /**
      * Process a HSLider or a VSlider(todo), check it's style and create the corresponding component.
