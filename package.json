@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "@babylonjs/core": "^6.24.0",
+    "@babylonjs/inspector": "^6.34.3",
     "html-webpack-plugin": "^5.5.3",
     "source-map-loader": "^4.0.1",
     "ts-loader": "^9.5.0",
@@ -20,7 +21,6 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@babylonjs/inspector": "^6.24.0",
     "@babylonjs/loaders": "^6.24.0",
     "earcut": "^2.2.4"
   }

@@ -1,11 +1,16 @@
-import {parser} from "../parsing";
+import {groups,parser} from "../parsing";
 import {todo} from "../../utils/utils";
-import {AdvancedDynamicTexture, GUI3DManager, PlanePanel, Slider3D, TextBlock, TouchButton3D} from "@babylonjs/gui";
-import {Color3, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
+import {AdvancedDynamicTexture, GUI3DManager, PlanePanel, Slider3D, TextBlock, TouchButton3D,MeshButton3D} from "@babylonjs/gui";
+import {Color3, Mesh, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
 import {HGroup} from "../factory/components/hgroup";
 import {MeshLoader} from "../meshLoader";
 import {VGroup} from "../factory/components/vgroup";
 
+
+enum orientation {
+    HORIZONTAL,
+    VERTICAL
+}
 /**
  * Main class responsible for building the 3D GUI & components.
  * @method buildFromJson - Builds the 3D GUI & components from the JSON file.
@@ -18,26 +23,62 @@ export class Builder3D {
     private offsetX = -2;
     private offsetYForGroupName = 1.75;
     private isTitleNeeded = true;
-
+    private rootOrientation: orientation;
+    private currentOrientation: orientation;
     /**
      * Boolean to know if the main group is vertical or horizontal.
      */
     private isVertical = false;
+
+
+    /**
+     * Materials used for the meshes.
+     */
+    private supportBoxMaterial: StandardMaterial;
+    private knobMaterial: StandardMaterial;
+    private checkboxMaterial: StandardMaterial;
+    private checkboxCheckedMaterial: StandardMaterial;
+
+
+    /**
+     * Constructor of the Builder3D class.
+     * @param scene - The scene where the 3D GUI will be built.
+     * @param gui3DManager - The BABYLON GUI3DManager instance.
+     *
+     * @description Retrieve the JSON file from the parser and set up the materials.
+     */
     constructor(scene: Scene, gui3DManager: GUI3DManager) {
         this.json = parser();
         this.gui3DManager = gui3DManager;
         this.scene = scene;
+
+        this.supportBoxMaterial = new StandardMaterial("supportBoxMaterial", this.scene);
+        this.supportBoxMaterial.diffuseColor = new Color3(0.1, 0.1, 0.1);
+        this.supportBoxMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+
+        this.checkboxMaterial = new StandardMaterial("checkboxMaterial", this.scene);
+        this.checkboxMaterial.diffuseColor = new Color3(1, 1, 1);
+        this.checkboxMaterial.specularColor = new Color3(1, 1, 1);
+
+        this.checkboxCheckedMaterial = new StandardMaterial("checkboxCheckedMaterial", this.scene);
+        this.checkboxCheckedMaterial.diffuseColor = new Color3(0, 1, 0);
+        this.checkboxCheckedMaterial.specularColor = new Color3(0, 1, 0);
+
+
+
     }
     
     /**
      * Builds the 3D GUI & components from the JSON file.
-     * 
      */
     public buildFromJson() {
-        //const {hgroupCount, vgroupCount} = groups;
-        let supportBox = MeshBuilder.CreateBox("supportBox", {width: 5, height: 5, depth: 1}, this.scene);
-        supportBox.position = new Vector3(0, 0, 0.55);
-        supportBox.material = new StandardMaterial("supportBoxMaterial", this.scene);
+        this.rootOrientation = this.getOrientation(this.json)
+        if(this.rootOrientation == orientation.VERTICAL){
+            this.isVertical = true;
+        }
+
+        console.log("ORIENTATION DU GROUP ROOT = " + this.rootOrientation);
+        const {hgroupCount, vgroupCount} = groups;
         const mainTitle = MeshBuilder.CreatePlane("holder", {width: 2, height: 2}, this.scene);
         mainTitle.position = new Vector3(0, 2.2, 0);
         let holderName = new TextBlock();
@@ -47,23 +88,45 @@ export class Builder3D {
         let advancedTexture = AdvancedDynamicTexture.CreateForMesh(mainTitle);
         advancedTexture.addControl(holderName);
 
+
+
         /**
          * Loop through the components in the parsed JSON file and process them.
          * 
          */
 
-        if (this.json instanceof VGroup){
-            this.isVertical = true;
-        }
         this.json.components.forEach((group: any) => {
                 this.isTitleNeeded = !!group.components; // group.components ? true : false
+                this.currentOrientation = this.getOrientation(group);
                 this.processGroup(group, mainTitle)
                 if(this.isTitleNeeded){
-                    this.offsetX = -2;
-                    this.offsetY -=2;
+                    if (this.currentOrientation == orientation.HORIZONTAL) {
+                        console.log("title needed + horizontal")
+                        this.offsetX = -2;
+                        this.offsetY -= 1;
+                    } else {
+                        console.log("title needed + vertical")
+                        this.offsetY -= 1;
+                        this.offsetX +=1;
+                    }
+                }else{
+                    console.log(this.currentOrientation)
+                    if(this.currentOrientation == orientation.HORIZONTAL && this.rootOrientation == orientation.HORIZONTAL) {
+                        console.log("title not needed + horizontal")
+                    } else{
+                        console.log("title not needed + vertical")
+                        this.offsetY -= 1;
+                        this.offsetX = -2;
+                    }
                 }
         });
+        console.log(`offsetX = ${this.offsetX} offsetY = ${this.offsetY}`);
+        const supportBoxHeight = Math.abs(this.offsetY) + hgroupCount;
+        const supportBoxTopY = 2 + supportBoxHeight / 2;
 
+        let supportBox = MeshBuilder.CreateBox("supportBox", {width: 5, height: supportBoxHeight, depth: 1}, this.scene);
+        supportBox.position = new Vector3(0,  2.5 - supportBoxTopY / 2, 0.55);
+        supportBox.material = this.supportBoxMaterial;
     }
 
     /**
@@ -118,7 +181,7 @@ export class Builder3D {
         }
         if(this.isVertical){
             this.offsetY -= 1;
-            this.offsetX = -2;
+            this.offsetX = 0;
         }
         //this.offsetX = -2;
     }
@@ -147,7 +210,7 @@ export class Builder3D {
         }
     }
     /**
-     * Process a HSLider or a VSlider(todo), check it's style and create the corresponding component.
+     * Process a HSlider or a VSlider(todo), check it's style and create the corresponding component.
      * @param subComponent component to be processed
      * @param anchor scene anchor for easier positioning
      * @param scene scene where the component will be added
@@ -268,27 +331,39 @@ export class Builder3D {
      * @param gui3DManager BABYLON GUI3DManager instance
      */
     private createCheckbox(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
-        let checkboxPanel = new PlanePanel();
-        gui3DManager.addControl(checkboxPanel);
-        let checkbox = new TouchButton3D("checkbox " + subComponent._label);
-        checkbox.isToggleButton = true;
-        checkboxPanel.addControl(checkbox);
-        checkbox.position = new Vector3(this.offsetX, this.offsetY, 0);
-        let checkedMaterial = new StandardMaterial("checkedMaterial", scene);
-        checkedMaterial.diffuseColor = new Color3(0, 1, 0);
-        checkbox.onPointerClickObservable.add(() => {
-            console.log(checkbox.isToggled);
-            if (checkbox.isToggled) {
-                checkbox.mesh.material = checkedMaterial;
+
+        let checkbox = MeshBuilder.CreateBox(subComponent._label, {width: 5, height: 1, depth: 0.1}, scene);
+        let btn = new MeshButton3D(checkbox);
+
+        /**
+         * When using MeshButton3D the mesh get a scaling when overed by the mouse,
+         * I tried to stop it, but I couldn't find a way to do it other than this.
+         */
+
+        btn.onPointerEnterObservable.add(() => {
+            checkbox.scaling = new Vector3(0.9, 0.9, 0.9);
+        });
+        btn.onPointerOutObservable.add(() => {
+            checkbox.scaling = new Vector3(1.1, 1.1, 1.1);
+        });
+
+        /* **************************************************** */
+
+        checkbox.position = new Vector3(0, this.offsetY, 0);
+        let pressed = false;
+        btn.onPointerClickObservable.add(() => {
+            pressed = !pressed;
+            if (pressed) {
+                checkbox.material = this.checkboxCheckedMaterial
             } else {
-                checkbox.mesh.material = null;
+                checkbox.material = this.checkboxMaterial
             }
         });
+        this.gui3DManager.addControl(btn);
         let textAnchor = new TransformNode("textAnchor" + subComponent._label);
-        textAnchor.position = checkbox.position.clone();
+        textAnchor.position = checkbox.position.clone().add(new Vector3(0, 0.6, 0));
         let textPlane = MeshBuilder.CreatePlane("textPlane", {width: 1, height: 1}, scene);
         textPlane.parent = textAnchor;
-        textPlane.position = new Vector3(0, 1, 0);
         let texture = AdvancedDynamicTexture.CreateForMesh(textPlane);
         let textBlock = new TextBlock();
         textBlock.text = subComponent._label;
@@ -298,5 +373,17 @@ export class Builder3D {
         this.offsetX += 1;
 
 
+    }
+
+    private getOrientation(component: any): orientation {
+        let type = Object.getPrototypeOf(component).constructor.name;
+        switch (type) {
+            case "HGroup":
+                return orientation.HORIZONTAL;
+            case "VGroup":
+                return orientation.VERTICAL;
+            default:
+                return orientation.HORIZONTAL;
+        }
     }
 }

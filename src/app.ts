@@ -15,7 +15,8 @@ import {
 import "@babylonjs/loaders/glTF";
 import { Builder3D } from "./wam3D/builder3D/builder";
 import { MeshLoader } from "./wam3D/meshLoader";
-
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 class App {
     constructor() {
         // create the canvas html element and attach it to the webpage
@@ -27,6 +28,7 @@ class App {
         // initialize babylon scene and engine
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
+
         /**
          * Cube texture taken from BabylonJS Playground, not needed it's just for the look
          */
@@ -137,7 +139,7 @@ class App {
             new Builder3D(scene, manager).buildFromJson();
         });
 
-
+        //scene.debugLayer.show();
     }
 }
 
