@@ -17,6 +17,9 @@ import { Builder3D } from "./wam3D/builder3D/builder";
 import { MeshLoader } from "./wam3D/meshLoader";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
+
+import {Exporter} from "./wam3D/exporter";
+
 class App {
     constructor() {
         // create the canvas html element and attach it to the webpage
@@ -138,7 +141,8 @@ class App {
         MeshLoader.loadMeshes(scene).then(r => {
             new Builder3D(scene, manager).buildFromJson();
         });
-
+        let exporter = Exporter.getInstance(guiTexture);
+        exporter.setupButton(scene);
         //scene.debugLayer.show();
     }
 }

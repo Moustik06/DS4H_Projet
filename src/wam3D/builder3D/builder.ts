@@ -1,16 +1,16 @@
-import {groups,parser} from "../parsing";
+import {groups, parser} from "../parsing";
 import {todo} from "../../utils/utils";
-import {AdvancedDynamicTexture, GUI3DManager, PlanePanel, Slider3D, TextBlock, TouchButton3D,MeshButton3D} from "@babylonjs/gui";
-import {Color3, Mesh, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
+import {AdvancedDynamicTexture, GUI3DManager, MeshButton3D, PlanePanel, Slider3D, TextBlock} from "@babylonjs/gui";
+import {Color3, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
 import {HGroup} from "../factory/components/hgroup";
 import {MeshLoader} from "../meshLoader";
 import {VGroup} from "../factory/components/vgroup";
 
 
 enum orientation {
-    HORIZONTAL,
-    VERTICAL
+    HORIZONTAL, VERTICAL
 }
+
 /**
  * Main class responsible for building the 3D GUI & components.
  * @method buildFromJson - Builds the 3D GUI & components from the JSON file.
@@ -25,19 +25,19 @@ export class Builder3D {
     private isTitleNeeded = true;
     private rootOrientation: orientation;
     private currentOrientation: orientation;
+
     /**
      * Boolean to know if the main group is vertical or horizontal.
      */
     private isVertical = false;
 
-
     /**
      * Materials used for the meshes.
      */
-    private supportBoxMaterial: StandardMaterial;
-    private knobMaterial: StandardMaterial;
-    private checkboxMaterial: StandardMaterial;
-    private checkboxCheckedMaterial: StandardMaterial;
+    private readonly supportBoxMaterial: StandardMaterial;
+    private readonly knobMaterial: StandardMaterial;
+    private readonly checkboxMaterial: StandardMaterial;
+    private readonly checkboxCheckedMaterial: StandardMaterial;
 
 
     /**
@@ -64,16 +64,15 @@ export class Builder3D {
         this.checkboxCheckedMaterial.diffuseColor = new Color3(0, 1, 0);
         this.checkboxCheckedMaterial.specularColor = new Color3(0, 1, 0);
 
-
-
     }
-    
+
     /**
      * Builds the 3D GUI & components from the JSON file.
      */
     public buildFromJson() {
         this.rootOrientation = this.getOrientation(this.json)
-        if(this.rootOrientation == orientation.VERTICAL){
+
+        if (this.rootOrientation == orientation.VERTICAL) {
             this.isVertical = true;
         }
 
@@ -89,49 +88,74 @@ export class Builder3D {
         advancedTexture.addControl(holderName);
 
 
-
         /**
          * Loop through the components in the parsed JSON file and process them.
-         * 
+         *
          */
 
         this.json.components.forEach((group: any) => {
-                this.isTitleNeeded = !!group.components; // group.components ? true : false
-                this.currentOrientation = this.getOrientation(group);
-                this.processGroup(group, mainTitle)
-                if(this.isTitleNeeded){
-                    if (this.currentOrientation == orientation.HORIZONTAL) {
-                        console.log("title needed + horizontal")
-                        this.offsetX = -2;
-                        this.offsetY -= 1;
-                    } else {
-                        console.log("title needed + vertical")
-                        this.offsetY -= 1;
-                        this.offsetX +=1;
-                    }
-                }else{
-                    console.log(this.currentOrientation)
-                    if(this.currentOrientation == orientation.HORIZONTAL && this.rootOrientation == orientation.HORIZONTAL) {
-                        console.log("title not needed + horizontal")
-                    } else{
-                        console.log("title not needed + vertical")
-                        this.offsetY -= 1;
-                        this.offsetX = -2;
-                    }
+            this.isTitleNeeded = !!group.components; // group.components ? true : false
+            this.currentOrientation = this.getOrientation(group);
+            this.processGroup(group, mainTitle)
+
+
+            /**
+             * Offset the position of the next group depending on the orientation of the current group.
+             * -x -> left
+             * +x -> right
+             * -y -> down
+             * +y -> up
+             *
+             */
+            if (this.isTitleNeeded) {
+
+                /**
+                 * New title needed, new group is horizontal, so we make it start at -2 on the x-axis.
+                 */
+                if (this.currentOrientation == orientation.HORIZONTAL) {
+                    console.log("title needed + horizontal")
+                    this.offsetX = -2;
+                    this.offsetY -= 1;
+                } else {
+                    /**
+                     * New title needed, new group is vertical, so we make it go down by 1 on the y-axis and go right by 1 on the x-axis.
+                     */
+                    console.log("title needed + vertical")
+                    this.offsetY -= 1;
+                    this.offsetX += 1;
                 }
+            } else {
+                /**
+                 * No new title needed, offset is changed in the processGroup function.
+                 */
+                if (this.currentOrientation == orientation.HORIZONTAL && this.rootOrientation == orientation.HORIZONTAL) {
+                    console.log("title not needed + horizontal")
+                } else {
+                    /**
+                     * No new title needed, we have a vertical group, so we make it go down by 1 on the y-axis and restart at -2 on the x-axis.
+                     */
+                    console.log("title not needed + vertical")
+                    this.offsetY -= 1;
+                    this.offsetX = -2;
+                }
+            }
         });
         console.log(`offsetX = ${this.offsetX} offsetY = ${this.offsetY}`);
         const supportBoxHeight = Math.abs(this.offsetY) + hgroupCount;
         const supportBoxTopY = 2 + supportBoxHeight / 2;
 
-        let supportBox = MeshBuilder.CreateBox("supportBox", {width: 5, height: supportBoxHeight, depth: 1}, this.scene);
-        supportBox.position = new Vector3(0,  2.5 - supportBoxTopY / 2, 0.55);
+        let supportBox = MeshBuilder.CreateBox("supportBox", {
+            width: 5,
+            height: supportBoxHeight,
+            depth: 1
+        }, this.scene);
+        supportBox.position = new Vector3(0, 2.5 - supportBoxTopY / 2, 0.55);
         supportBox.material = this.supportBoxMaterial;
     }
 
     /**
      * Generates a TextBlock with the specified label.
-     * 
+     *
      * @param label  - The text to be displayed in the TextBlock.
      * @returns The generated TextBlock.
      */
@@ -154,7 +178,7 @@ export class Builder3D {
          * If a group label is needed (if the group has components), create a TextBlock with the label.
          */
 
-        if (this.isTitleNeeded){
+        if (this.isTitleNeeded) {
             let groupName = this.generateTextBlock(group.label);
             let groupNamePlane = MeshBuilder.CreatePlane("groupNamePlane", {width: 1.5, height: 1.5}, this.scene);
             let currentAnchor = new TransformNode("currentAnchor" + group.label);
@@ -179,9 +203,9 @@ export class Builder3D {
         } else {
             this.processComponent(group, currentAnchor, this.scene, this.gui3DManager);
         }
-        if(this.isVertical){
+        if (this.isVertical) {
             this.offsetY -= 1;
-            this.offsetX = 0;
+            this.offsetX = -2;
         }
         //this.offsetX = -2;
     }
@@ -198,6 +222,9 @@ export class Builder3D {
             case "HSlider":
                 this.createKnob(component, anchor, scene, gui3DManager);
                 break;
+            case "VSlider":
+                this.createSlider(component, anchor, scene, gui3DManager);
+                break;
             case "VGroup":
                 this.createSlider(component, anchor, scene, gui3DManager);
                 break;
@@ -209,6 +236,7 @@ export class Builder3D {
                 break;
         }
     }
+
     /**
      * Process a HSlider or a VSlider(todo), check it's style and create the corresponding component.
      * @param subComponent component to be processed
@@ -217,7 +245,7 @@ export class Builder3D {
      * @param gui3DManager BABYLON GUI3DManager instance
      */
     private createKnob(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
-        if(subComponent.style && subComponent.style == "knob") {
+        if (subComponent.style && subComponent.style == "knob") {
             let knob = MeshLoader.knobMesh.clone(subComponent.label, null);
             knob.isVisible = true;
             knob.position = new Vector3(this.offsetX, this.offsetY, 0);
@@ -241,12 +269,12 @@ export class Builder3D {
 
             texture.addControl(textBlock);
 
-            /** 
+            /**
              * Behavior for the knob associated slider.
              * First line is to set the default knob rotation from the default value of the slider.
              * onValueChangedObservable : when the value of the slider changes, the knob rotation is updated.
              * Display the value if not at the minimum value.
-            */
+             */
             knob.rotation.z = -((knobSlider.value * Math.PI) / knobSlider.maximum * 2);
             knobSlider.onValueChangedObservable.add(() => {
                 if (knobSlider.value.toFixed(2) == knobSlider.minimum.toFixed(2)) {
@@ -256,7 +284,7 @@ export class Builder3D {
                 }
                 knob.rotation.z = -((knobSlider.value * Math.PI) / knobSlider.maximum * 2);
             });
-        }else{
+        } else {
             todo("Implémentation du slider, terminer la position ainsi que le behavior");
             this.createSlider(subComponent, anchor, scene, gui3DManager);
         }
@@ -270,19 +298,45 @@ export class Builder3D {
      * @param gui3DManager BABYLON GUI3DManager instance
      */
     private createSlider(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
+        /**
+         * Bad way to check if the slider have the knob style, but I didn't find another way.
+         */
+        if(subComponent.style && subComponent.style == "knob"){
+            this.createKnob(subComponent, anchor, scene, gui3DManager);
+            return;
+        }
         let sliderPanel = new PlanePanel();
         gui3DManager.addControl(sliderPanel);
         let slider = new Slider3D("slider " + subComponent.label);
         sliderPanel.addControl(slider);
-        slider.position = new Vector3(this.offsetX+0.5, this.offsetY, 0);
+        slider.position = new Vector3(this.offsetX + 0.5, this.offsetY, 0);
         slider.minimum = subComponent.min;
         slider.maximum = subComponent.max;
         slider.value = subComponent.init;
         slider.step = subComponent.step;
         slider.scaling = new Vector3(2, 1, 1.5);
         //this.offsetX += 1;
+
+        /**
+         * TODO : setup the slider orientation, if vertical, rotate the slider and the text.
+         * slider.rotation don't work, sliderPanel.rotation don't work either.
+         */
+        console.log("ORIENTATION DU SLIDER = " + this.currentOrientation)
+        let rotation = false;
+        if(this.currentOrientation == orientation.VERTICAL){
+            console.log(slider)
+            slider.node.rotation.z = Math.PI/2;
+            rotation = true;
+        }
         let textAnchor = new TransformNode("textAnchor" + subComponent.label);
-        textAnchor.position = slider.position.clone().add(new Vector3(0, 0.25, 0));
+
+        if(rotation){
+            textAnchor.position = slider.position.clone().add(new Vector3(0, -1.1, 0));
+        }
+        else {
+            textAnchor.position = slider.position.clone().add(new Vector3(0, 0.25, 0));
+        }
+
         let textPlane = MeshBuilder.CreatePlane("textPlane", {width: 1, height: 1}, scene);
         textPlane.parent = textAnchor;
         let texture = AdvancedDynamicTexture.CreateForMesh(textPlane);
@@ -292,10 +346,10 @@ export class Builder3D {
         textBlock.fontSize = "15%";
         texture.addControl(textBlock);
 
-        /** 
+        /**
          * Behavior for the slider.
          * Display the value if not at the minimum value.
-        */
+         */
         slider.onValueChangedObservable.add(() => {
             if (slider.value.toFixed(2) == slider.minimum.toFixed(2)) {
                 textBlock.text = subComponent.label;
@@ -375,12 +429,21 @@ export class Builder3D {
 
     }
 
+    /**
+     * Get the orientation of the component.
+     * @param component the component to get the orientation from
+     * @returns the orientation of the component
+     */
     private getOrientation(component: any): orientation {
         let type = Object.getPrototypeOf(component).constructor.name;
         switch (type) {
             case "HGroup":
                 return orientation.HORIZONTAL;
             case "VGroup":
+                return orientation.VERTICAL;
+            case "HSlider":
+                return orientation.HORIZONTAL;
+            case "VSlider":
                 return orientation.VERTICAL;
             default:
                 return orientation.HORIZONTAL;
