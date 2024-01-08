@@ -105,7 +105,6 @@ export class Builder3D {
              * +x -> right
              * -y -> down
              * +y -> up
-             *
              */
             if (this.isTitleNeeded) {
 
@@ -129,6 +128,9 @@ export class Builder3D {
                  * No new title needed, offset is changed in the processGroup function.
                  */
                 if (this.currentOrientation == orientation.HORIZONTAL && this.rootOrientation == orientation.HORIZONTAL) {
+                    /**
+                     * Nothing to do here.
+                     */
                     console.log("title not needed + horizontal")
                 } else {
                     /**
@@ -247,6 +249,7 @@ export class Builder3D {
     private createKnob(subComponent: any, anchor: TransformNode, scene: Scene, gui3DManager: GUI3DManager) {
         if (subComponent.style && subComponent.style == "knob") {
             let knob = MeshLoader.knobMesh.clone(subComponent.label, null);
+            knob.metadata = subComponent;
             knob.isVisible = true;
             knob.position = new Vector3(this.offsetX, this.offsetY, 0);
             this.offsetX += 1;
@@ -285,7 +288,6 @@ export class Builder3D {
                 knob.rotation.z = -((knobSlider.value * Math.PI) / knobSlider.maximum * 2);
             });
         } else {
-            todo("Implémentation du slider, terminer la position ainsi que le behavior");
             this.createSlider(subComponent, anchor, scene, gui3DManager);
         }
     }
@@ -328,6 +330,7 @@ export class Builder3D {
             slider.node.rotation.z = Math.PI/2;
             rotation = true;
         }
+
         let textAnchor = new TransformNode("textAnchor" + subComponent.label);
 
         if(rotation){

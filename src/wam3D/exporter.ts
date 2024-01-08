@@ -1,5 +1,6 @@
 import {Scene, SceneSerializer} from "@babylonjs/core";
 import {AdvancedDynamicTexture, StackPanel, Control,Button} from "@babylonjs/gui";
+import {FunctionalListenerGenerator} from "./listenerGenerator";
 
 /**
  * Represents an Exporter that exports the scene to a .babylon file.
@@ -8,15 +9,21 @@ import {AdvancedDynamicTexture, StackPanel, Control,Button} from "@babylonjs/gui
  */
 export class Exporter{
     private static instance : Exporter;
+
+    /**
+     * guiManager - Link to the manager responsible for the 2D gui used to display information on the screen.
+     */
     private guiManager : AdvancedDynamicTexture;
     private objectURL : string;
-    private constructor(guiManager : AdvancedDynamicTexture) {
+    private generator : FunctionalListenerGenerator;
+    private constructor(guiManager : AdvancedDynamicTexture,scene : Scene) {
         this.guiManager = guiManager;
+        this.generator = new FunctionalListenerGenerator(scene);
     }
 
-    public static getInstance(guiManager : AdvancedDynamicTexture): Exporter {
+    public static getInstance(guiManager : AdvancedDynamicTexture,scene :Scene): Exporter {
         if (!Exporter.instance) {
-            Exporter.instance = new Exporter(guiManager);
+            Exporter.instance = new Exporter(guiManager,scene);
         }
         return Exporter.instance;
     }
@@ -26,15 +33,14 @@ export class Exporter{
      * Exports the scene to a .babylon file.
      * @param filename
      * @param scene
-     * @see https://playground.babylonjs.com/#1AGCWP#1
+     * @see https://github.com/micbuffa/FaustGuiBuilder/blob/main/Front-End/pedal_models/functionalPedalGeneratorMichelWam2.js
      *
-     * PROBLEME : Lorsqu'on exporte on perd toute la GUI 3D, plus de slider sous les knobs, plus d'intéraction possible
+     * @PROBLEME : Lorsqu'on exporte on perd toute la GUI 3D, plus de slider sous les knobs, plus d'intéraction possible
      * avec les meshes, plus de boutons, plus rien. Il faut donc trouver un moyen de garder la GUI 3D.
+     *
+     * @Solution : Faire de la génération de code qui contient tout les listeners et fonctions associées à la GUI 3D.
      */
     private doDownload(filename: string,scene : Scene) {
-        if(this.objectURL){
-            window.URL.revokeObjectURL(this.objectURL);
-        }
 
         const serializedScene = SceneSerializer.Serialize(scene);
         const strScene = JSON.stringify(serializedScene);
@@ -51,11 +57,6 @@ export class Exporter{
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-
-        //this.objectURL = (window.webkitURL || window.URL).createObjectURL(blob);
-
-        //console.log(this.objectURL);
-
 
     }
 
@@ -82,8 +83,10 @@ export class Exporter{
             this.doDownload("test",scene);
         });
         stackPanel.addControl(button);
+    }
 
-
-
+    public generateCode(){
+        let meshes = this.generator.generateTest();
+        console.log(meshes);
     }
 }

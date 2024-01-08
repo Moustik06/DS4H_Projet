@@ -140,10 +140,12 @@ class App {
          */
         MeshLoader.loadMeshes(scene).then(r => {
             new Builder3D(scene, manager).buildFromJson();
+            let exporter = Exporter.getInstance(guiTexture,scene);
+            exporter.setupButton(scene);
+            exporter.generateCode();
+            //scene.debugLayer.show();
         });
-        let exporter = Exporter.getInstance(guiTexture);
-        exporter.setupButton(scene);
-        //scene.debugLayer.show();
+
     }
 }
 
